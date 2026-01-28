@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+<html lang="ko"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>멘탈 뱅크 (The Mental Bank) - 잠재의식 재설계 시스템</title> <script src="https://cdn.tailwindcss.com"></script> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet"> <style> body { font-family: 'Noto Sans KR', sans-serif; background-color: #f0fdf4; /* Light green tint for prosperity / } / Chart Container Styling as per requirements / .chart-container { position: relative; width: 100%; max-width: 800px; / Controlled max width / margin-left: auto; margin-right: auto; height: 40vh; / Responsive height / max-height: 400px; overflow: hidden; / Prevent overflow / } @media (min-width: 768px) { .chart-container { height: 400px; } } .handwriting-font { font-family: 'Courier New', Courier, monospace; / Fallback for a script-like feel */ font-style: italic; } .tab-active { border-bottom: 2px solid #15803d; color: #15803d; font-weight: bold; } .tab-inactive { color: #64748b; } .hidden-section { display: none; } </style> </head> <body class="text-slate-800">
+
+<!-- Main Application Container -->
+<div class="min-h-screen flex flex-col">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🏦</span>
+                <h1 class="text-xl font-bold text-slate-800 tracking-tight">멘탈 뱅크 <span class="text-xs font-normal text-slate-500">Subconscious Ledger</span></h1>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-500 uppercase">현재 멘탈 잔액</p>
+                <p class="text-2xl font-bold text-green-700" id="header-balance">₩0</p>
+            </div>
+        </div>
+        <!-- Navigation -->
+        <nav class="max-w-5xl mx-auto px-4 mt-2">
+            <div class="flex space-x-6 overflow-x-auto">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="pb-3 px-1 tab-active whitespace-nowrap transition-colors">대시보드</button>
+                <button onclick="switchTab('contract')" id="tab-contract" class="pb-3 px-1 tab-inactive whitespace-nowrap transition-colors">계약 및 설정</button>
+                <button onclick="switchTab('ledger')" id="tab-ledger" class="pb-3 px-1 tab-inactive whitespace-nowrap transition-colors">일일 장부 (Ledger)</button>
+                <button onclick="switchTab('guide')" id="tab-guide" class="pb-3 px-1 tab-inactive whitespace-nowrap transition-colors">원리 및 가이드</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow bg-slate-50 p-4">
+        <div class="max-w-5xl mx-auto space-y-6">
+
+            <!-- SECTION 1: DASHBOARD -->
+            <section id="section-dashboard">
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-lg font-bold mb-2 text-slate-800">나의 스크립트 진행 현황</h2>
+                    <p class="text-sm text-slate-600 mb-4">
+                        이 대시보드는 당신의 <strong>잠재의식 안락지대(Comfort Zone)</strong>가 확장되는 과정을 시각화합니다. 
+                        멘탈 뱅크 이론에 따르면, 당신의 멘탈 잔액이 목표치에 도달할 때 현실의 수입과 성공도 그 수준에 맞춰 따라오게 됩니다. 
+                        지그재그 패턴(현실의 등락)을 넘어 꾸준히 우상향하는 멘탈 잔액을 확인하세요.
+                    </p>
+                    
+                    <!-- Chart -->
+                    <div class="w-full bg-slate-50 rounded-xl p-2 border border-slate-100 mb-4">
+                        <div class="chart-container">
+                            <canvas id="mentalBankChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Key Stats -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                        <div class="p-4 bg-green-50 rounded-lg border border-green-100">
+                            <p class="text-xs text-green-600 mb-1">멘탈 뱅크 목표 (연수입 x2)</p>
+                            <p class="text-lg font-bold" id="dash-goal">₩0</p>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <p class="text-xs text-blue-600 mb-1">시간당 수당</p>
+                            <p class="text-lg font-bold" id="dash-rate">₩0</p>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-lg border border-purple-100">
+                            <p class="text-xs text-purple-600 mb-1">목표 달성률</p>
+                            <p class="text-lg font-bold" id="dash-progress">0%</p>
+                        </div>
+                        <div class="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                            <p class="text-xs text-orange-600 mb-1">최근 해프닝</p>
+                            <p class="text-sm font-medium truncate" id="dash-happening">-</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: CONTRACT (SETUP) -->
+            <section id="section-contract" class="hidden-section">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-lg font-bold mb-2 text-slate-800">새로운 멘탈 스크립트 계약</h2>
+                    <p class="text-sm text-slate-600 mb-6">
+                        성공은 우연이 아닙니다. 멘탈 뱅크의 첫 단계는 현재의 연 수입을 기준으로 <strong>2배의 목표</strong>를 설정하고, 
+                        이를 달성하기 위한 나의 시간당 가치를 재산정하는 계약을 스스로와 체결하는 것입니다. 
+                        이곳에서 설정한 값은 장부 기록의 기준이 됩니다.
+                    </p>
+
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Income Setup -->
+                        <div class="space-y-4">
+                            <label class="block">
+                                <span class="text-sm font-medium text-slate-700">현재 연 수입 (A)</span>
+                                <input type="number" id="input-current-income" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition" placeholder="예: 50000000">
+                            </label>
+                            
+                            <div class="p-4 bg-slate-100 rounded-lg space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">멘탈 뱅크 목표 (A x 2)</span>
+                                    <span class="font-bold text-green-700" id="calc-goal">₩0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">시간당 수당 (목표 / 1000)</span>
+                                    <span class="font-bold text-blue-700" id="calc-rate">₩0</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-slate-600">멘탈 뱅크 잔액 목표 (목표 x 4)</span>
+                                    <span class="font-bold text-slate-700" id="calc-target">₩0</span>
+                                </div>
+                            </div>
+                            <button onclick="saveContract()" class="w-full bg-slate-800 text-white py-3 rounded-lg hover:bg-slate-700 transition shadow-lg">계약 저장 및 갱신</button>
+                        </div>
+
+                        <!-- Value Events Setup -->
+                        <div class="space-y-4 border-t md:border-t-0 md:border-l border-slate-200 pt-6 md:pt-0 md:pl-6">
+                            <h3 class="font-bold text-slate-700 flex justify-between">
+                                <span>밸류 이벤트 (Value Events)</span>
+                                <span class="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-1 rounded">성공, 행복, 풍요</span>
+                            </h3>
+                            <p class="text-xs text-slate-500">목표 달성을 위해 수행할 긍정적인 활동을 정의합니다. (기본값 제공)</p>
+                            
+                            <ul id="value-event-list" class="space-y-2 max-h-64 overflow-y-auto">
+                                <!-- Populated by JS -->
+                            </ul>
+                            
+                            <div class="flex space-x-2">
+                                <input type="text" id="new-event-name" placeholder="새로운 활동 (예: 독서)" class="flex-grow p-2 rounded border border-slate-300 text-sm">
+                                <button onclick="addValueEvent()" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700">추가</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: LEDGER (DAILY ENTRY) -->
+            <section id="section-ledger" class="hidden-section">
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">일일 멘탈 장부 (Ledger)</h2>
+                            <p class="text-xs text-slate-500">자기 전 30분, '마법의 시간'에 기록하세요.</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-xs text-slate-400">오늘의 날짜</span>
+                            <input type="date" id="ledger-date" class="text-sm font-bold bg-transparent border-none text-right focus:ring-0 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-slate-600 mb-6 bg-green-50 p-3 rounded">
+                        💡 <strong>팁:</strong> 손글씨는 비판적 사고를 우회하여 잠재의식에 직접 닿습니다. 이 디지털 도구는 기록을 보관하지만, 마음속으로는 펜으로 꾹꾹 눌러 쓰는 상상을 하며 버튼을 누르세요.
+                    </p>
+
+                    <!-- Entry Form -->
+                    <div class="space-y-6">
+                        
+                        <!-- Value Events Selection -->
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-700 mb-2">오늘 수행한 밸류 이벤트</h3>
+                            <div id="ledger-event-inputs" class="space-y-3">
+                                <!-- Dynamic Inputs Here -->
+                            </div>
+                        </div>
+
+                        <!-- Happenings & Affirmations -->
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">해프닝 (Happenings)</label>
+                                <textarea id="input-happenings" class="w-full h-24 p-3 rounded-md border border-slate-300 text-sm handwriting-font placeholder-slate-400" placeholder="오늘 일어난 긍정적인 일이나 우연을 기록하세요."></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">확언 및 투자 (Affirmations)</label>
+                                <textarea id="input-affirmations" class="w-full h-24 p-3 rounded-md border border-slate-300 text-sm handwriting-font placeholder-slate-400" placeholder="나는 부자가 될 기회를 잡을 준비가 되어 있다."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Calculation Display -->
+                        <div class="border-t border-dashed border-slate-300 pt-4 flex justify-between items-end">
+                            <div>
+                                <p class="text-xs text-slate-500">오늘의 적립액</p>
+                                <p class="text-2xl font-bold text-green-600" id="daily-total-display">₩0</p>
+                            </div>
+                            <button onclick="submitLedger()" class="bg-slate-900 text-white px-8 py-3 rounded-lg hover:bg-slate-800 transition transform active:scale-95 font-bold shadow-lg">
+                                장부 기록하기 ✍️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent History -->
+                <div class="mt-8">
+                    <h3 class="text-md font-bold text-slate-700 mb-3">최근 기록 내역</h3>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <table class="min-w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-500 font-medium">
+                                <tr>
+                                    <th class="px-4 py-3">날짜</th>
+                                    <th class="px-4 py-3">활동</th>
+                                    <th class="px-4 py-3 text-right">적립액</th>
+                                    <th class="px-4 py-3 text-right">누적 잔액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledger-history-body" class="divide-y divide-slate-100">
+                                <!-- History Rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: GUIDE (THEORY) -->
+            <section id="section-guide" class="hidden-section">
+                <div class="bg-white rounded-lg shadow p-8 space-y-8">
+                    <div class="border-b border-slate-100 pb-4">
+                        <h2 class="text-2xl font-bold text-slate-800 mb-2">멘탈 뱅크의 5가지 성공 요리법</h2>
+                        <p class="text-slate-500">존 카파스(John Kappas) 박사의 이론에 기반한 잠재의식 프로그래밍</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-green-700">1. 믿음 (Belief)</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                우리의 현재 상황은 잠재의식 속 '스크립트'의 결과입니다. 만족스럽지 않다면 더 좋은 스크립트를 새로 써넣으면 됩니다.
+                            </p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-green-700">2. 매일의 강화 (Daily Reinforcement)</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                긍정적 사고는 의식의 12%에 불과합니다. 멘탈 뱅크는 나머지 88%의 무의식에 매일 새로운 데이터를 입력하여 변화를 만듭니다.
+                            </p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-green-700">3. 스크립팅 (Scripting)</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                손글씨는 '이디오모터(Ideomotor)' 반응을 일으켜 비판적 사고(Critical Area)를 우회하고 잠재의식에 직접 도달합니다.
+                            </p>
+                        </div>
+                        <div class="space-y-2">
+                            <h3 class="font-bold text-green-700">4. 타이밍 & 꿈 (Timing & Dreams)</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                자기 전 30분은 의식이 과부하되어 자연스러운 최면 상태가 되는 '마법의 시간'입니다. 이때 입력된 정보는 꿈의 '예지 단계(Precognitive Stage)'로 들어가 미래를 준비합니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-orange-400">
+                        <h3 class="font-bold text-slate-800 mb-1">안락지대(Comfort Zone)와 저항</h3>
+                        <p class="text-sm text-slate-600">
+                            잠재의식은 'Known(익숙함)'을 즐거움으로, 'Unknown(낯섦)'을 고통으로 인식합니다. 
+                            수입이 갑자기 늘면 무의식은 이를 불편하게 여겨 다시 원래대로 되돌리려 합니다(Sabotage).
+                            멘탈 뱅크는 가상의 고소득 경험을 통해 <strong>안락지대의 상한선을 높여</strong>, 
+                            실제 성공이 다가왔을 때 이를 자연스럽게 받아들이도록 만듭니다.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<!-- JavaScript Logic -->
+<script>
+    // --- State Management ---
+    const DEFAULT_EVENTS = [
+        "일기 쓰기", "운동", "건강 식단", "독서/자기계발", 
+        "업무/직장 일", "가족과의 시간", "새로운 프로젝트 구상"
+    ];
+
+    let appState = {
+        currentIncome: 30000000,
+        mbGoal: 60000000, // Income * 2
+        hourlyRate: 60000, // Goal / 1000
+        balance: 0,
+        valueEvents: [...DEFAULT_EVENTS],
+        history: []
+    };
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set today's date
+        document.getElementById('ledger-date').valueAsDate = new Date();
+        
+        // Initial Calculations
+        recalcContract(appState.currentIncome);
+        
+        // Render UI
+        renderValueEventsConfig();
+        renderLedgerInputs();
+        initChart();
+        updateDashboard();
+    });
+
+    // --- Navigation Logic ---
+    function switchTab(tabName) {
+        // Hide all sections
+        document.querySelectorAll('section').forEach(el => el.classList.add('hidden-section'));
+        // Show selected
+        document.getElementById(`section-${tabName}`).classList.remove('hidden-section');
+        
+        // Update Tab Styles
+        document.querySelectorAll('nav button').forEach(btn => {
+            btn.className = "pb-3 px-1 tab-inactive whitespace-nowrap transition-colors";
+        });
+        document.getElementById(`tab-${tabName}`).className = "pb-3 px-1 tab-active whitespace-nowrap transition-colors";
+
+        // Refresh Chart if dashboard
+        if(tabName === 'dashboard') {
+            updateChart();
+        }
+    }
+
+    // --- Contract Logic ---
+    const inputIncome = document.getElementById('input-current-income');
+    
+    inputIncome.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value) || 0;
+        recalcContract(val);
+    });
+
+    function recalcContract(income) {
+        appState.currentIncome = income;
+        // Rule: Goal is 2x current income (or 4x if high earner, simplifying to 2x for base logic)
+        appState.mbGoal = income * 2;
+        // Rule: Hourly Rate is Goal / 1000
+        appState.hourlyRate = appState.mbGoal / 1000;
+
+        // Update UI Displays
+        document.getElementById('calc-goal').innerText = formatCurrency(appState.mbGoal);
+        document.getElementById('calc-rate').innerText = formatCurrency(appState.hourlyRate);
+        document.getElementById('calc-target').innerText = formatCurrency(appState.mbGoal * 4);
+    }
+
+    function saveContract() {
+        // Reset Ledger inputs based on new rate
+        renderLedgerInputs();
+        updateDashboard();
+        alert("계약이 갱신되었습니다. 새로운 시간당 수당이 적용됩니다.");
+        switchTab('ledger');
+    }
+
+    function renderValueEventsConfig() {
+        const list = document.getElementById('value-event-list');
+        list.innerHTML = '';
+        appState.valueEvents.forEach((event, index) => {
+            const li = document.createElement('li');
+            li.className = "flex justify-between items-center bg-slate-50 p-2 rounded border border-slate-200";
+            li.innerHTML = `
+                <span class="text-sm text-slate-700">${event}</span>
+                <button onclick="removeValueEvent(${index})" class="text-red-400 hover:text-red-600 text-xs">삭제</button>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addValueEvent() {
+        const input = document.getElementById('new-event-name');
+        const val = input.value.trim();
+        if (val) {
+            appState.valueEvents.push(val);
+            renderValueEventsConfig();
+            renderLedgerInputs();
+            input.value = '';
+        }
+    }
+
+    function removeValueEvent(index) {
+        appState.valueEvents.splice(index, 1);
+        renderValueEventsConfig();
+        renderLedgerInputs();
+    }
+
+    // --- Ledger Logic ---
+    function renderLedgerInputs() {
+        const container = document.getElementById('ledger-event-inputs');
+        container.innerHTML = '';
+
+        appState.valueEvents.forEach((event, index) => {
+            const div = document.createElement('div');
+            div.className = "flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-green-300 transition-colors";
+            div.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <input type="checkbox" id="check-${index}" class="w-5 h-5 text-green-600 rounded focus:ring-green-500" onchange="calcDailyTotal()">
+                    <label for="check-${index}" class="text-sm font-medium text-slate-700 select-none">${event}</label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="number" id="hours-${index}" value="1" min="0.5" step="0.5" class="w-16 p-1 text-right text-sm border rounded" onchange="calcDailyTotal()">
+                    <span class="text-xs text-slate-500">시간</span>
+                    <label class="flex items-center space-x-1 cursor-pointer" title="보너스 이벤트는 2배 지급">
+                        <input type="checkbox" id="bonus-${index}" class="text-orange-500 rounded" onchange="calcDailyTotal()">
+                        <span class="text-[10px] text-orange-600 font-bold">BONUS</span>
+                    </label>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function calcDailyTotal() {
+        let total = 0;
+        appState.valueEvents.forEach((_, index) => {
+            const checked = document.getElementById(`check-${index}`).checked;
+            if (checked) {
+                const hours = parseFloat(document.getElementById(`hours-${index}`).value) || 0;
+                const isBonus = document.getElementById(`bonus-${index}`).checked;
+                const multiplier = isBonus ? 2 : 1;
+                total += (appState.hourlyRate * hours * multiplier);
+            }
+        });
+        document.getElementById('daily-total-display').innerText = formatCurrency(total);
+        return total;
+    }
+
+    function submitLedger() {
+        const total = calcDailyTotal();
+        if (total <= 0) {
+            alert("수행한 밸류 이벤트를 선택해주세요.");
+            return;
+        }
+
+        const date = document.getElementById('ledger-date').value;
+        const happening = document.getElementById('input-happenings').value;
+        const affirmation = document.getElementById('input-affirmations').value;
+
+        // Logic: Add to balance
+        const previousBalance = appState.balance;
+        appState.balance += total;
+
+        // Record History
+        const entry = {
+            date: date,
+            total: total,
+            balance: appState.balance,
+            happening: happening
+        };
+        appState.history.push(entry);
+
+        // Update UI
+        updateDashboard();
+        updateHistoryTable();
+        
+        // Clear inputs
+        document.querySelectorAll('#ledger-event-inputs input[type="checkbox"]').forEach(el => el.checked = false);
+        document.getElementById('input-happenings').value = '';
+        document.getElementById('input-affirmations').value = '';
+        document.getElementById('daily-total-display').innerText = formatCurrency(0);
+
+        // Feedback
+        alert(`🎉 장부 기록 완료!\n\n오늘의 적립액: ${formatCurrency(total)}\n현재 총 잔액: ${formatCurrency(appState.balance)}`);
+        switchTab('dashboard');
+    }
+
+    function updateHistoryTable() {
+        const tbody = document.getElementById('ledger-history-body');
+        tbody.innerHTML = '';
+        // Show last 5 entries
+        [...appState.history].reverse().slice(0, 5).forEach(entry => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-4 py-3 whitespace-nowrap text-slate-600">${entry.date}</td>
+                <td class="px-4 py-3 text-slate-600 truncate max-w-[150px]">${entry.happening || '활동 기록'}</td>
+                <td class="px-4 py-3 text-right font-medium text-green-600">+${formatCurrency(entry.total)}</td>
+                <td class="px-4 py-3 text-right font-bold text-slate-700">${formatCurrency(entry.balance)}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateDashboard() {
+        document.getElementById('header-balance').innerText = formatCurrency(appState.balance);
+        document.getElementById('dash-goal').innerText = formatCurrency(appState.mbGoal);
+        document.getElementById('dash-rate').innerText = formatCurrency(appState.hourlyRate);
+        
+        // Progress Calculation
+        const targetBalance = appState.mbGoal * 4;
+        const percent = targetBalance > 0 ? Math.min(100, (appState.balance / targetBalance) * 100).toFixed(1) : 0;
+        document.getElementById('dash-progress').innerText = `${percent}%`;
+
+        // Last happening
+        const lastEntry = appState.history[appState.history.length - 1];
+        document.getElementById('dash-happening').innerText = lastEntry && lastEntry.happening ? lastEntry.happening : "아직 기록 없음";
+
+        updateChart();
+    }
+
+    // --- Chart Logic ---
+    let chartInstance = null;
+
+    function initChart() {
+        const ctx = document.getElementById('mentalBankChart').getContext('2d');
+        
+        // Initial Dummy Data to show the "Concept"
+        const labels = ['시작', '1주차', '2주차', '3주차', '4주차', '목표'];
+        
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '멘탈 뱅크 잔액 (Mental Balance)',
+                        data: [0, null, null, null, null, null], // Starts at 0
+                        borderColor: '#15803d', // Green
+                        backgroundColor: 'rgba(21, 128, 61, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: '현실 안락지대 (Current Comfort Zone)',
+                        data: [null, null, null, null, null, null], // Dynamic
+                        borderColor: '#94a3b8', // Slate
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₩' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₩' + context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        if(!chartInstance) return;
+
+        // Prepare data from history
+        const historyLabels = appState.history.map(h => h.date);
+        const historyData = appState.history.map(h => h.balance);
+
+        // If no history, keep dummy view, else show real
+        if (appState.history.length > 0) {
+            chartInstance.data.labels = historyLabels;
+            chartInstance.data.datasets[0].data = historyData;
+
+            // The Comfort Zone Line (The ceiling we are breaking)
+            // This simulates the zig-zag ceiling described in the PDF
+            const comfortZone = appState.currentIncome; 
+            chartInstance.data.datasets[1].data = new Array(historyLabels.length).fill(comfortZone);
+        } else {
+            // Show projected path if empty
+             chartInstance.data.datasets[1].data = [appState.currentIncome, appState.currentIncome, appState.currentIncome, appState.currentIncome, appState.currentIncome, appState.currentIncome];
+        }
+
+        chartInstance.update();
+    }
+
+    // --- Helpers ---
+    function formatCurrency(num) {
+        return '₩' + Math.floor(num).toLocaleString();
+    }
+</script>
+<!-- [ADD ON] Contract Modal Component -->
+<!-- 이 코드를 </body> 태그 바로 위에 붙여넣으세요 -->
+
+<style>
+    /* 계약서 모달 전용 스타일 */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(2, 6, 23, 0.95); /* 아주 진한 배경 */
+        backdrop-filter: blur(8px);
+        z-index: 9999;
+        display: flex; justify-content: center; align-items: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .contract-paper {
+        background: #0f172a;
+        width: 100%; max-width: 600px; height: 85vh;
+        border: 1px solid #22d3ee;
+        border-radius: 8px;
+        box-shadow: 0 0 50px rgba(34, 211, 238, 0.15);
+        position: relative;
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        transform: scale(0.95); transition: transform 0.3s ease;
+    }
+    .modal-overlay.active .contract-paper { transform: scale(1); }
+
+    .contract-header {
+        padding: 20px; border-bottom: 1px solid #1e293b;
+        display: flex; justify-content: space-between; align-items: center;
+        background: rgba(34, 211, 238, 0.05);
+    }
+    .contract-body {
+        padding: 30px; overflow-y: auto; color: #94a3b8;
+        font-family: 'Noto Sans KR', sans-serif; font-size: 14px; line-height: 1.8;
+    }
+    .contract-footer {
+        padding: 20px; border-top: 1px solid #1e293b;
+        text-align: center; background: #0f172a;
+    }
+
+    .article-title { color: #22d3ee; font-weight: bold; margin-top: 20px; margin-bottom: 8px; display: block; }
+    .highlight-money { color: #fff; background: rgba(34, 211, 238, 0.1); padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    
+    /* 둥둥 떠다니는 플로팅 버튼 */
+    .floating-btn {
+        position: fixed; bottom: 30px; right: 30px;
+        background: #0f172a; border: 1px solid #22d3ee;
+        color: #22d3ee; padding: 12px 20px;
+        border-radius: 50px; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        z-index: 1000; font-size: 12px; font-weight: bold;
+        display: flex; align-items: center; gap: 8px;
+        transition: all 0.3s;
+    }
+    .floating-btn:hover { background: #22d3ee; color: #000; transform: translateY(-3px); }
+</style>
+
+<!-- 플로팅 버튼 (화면 우측 하단 고정) -->
+<button class="floating-btn" onclick="openContract()">
+    <i class="fa-solid fa-file-contract"></i> 존재 계약서 확인
+</button>
+
+<!-- 모달 본문 -->
+<div id="contractModal" class="modal-overlay">
+    <div class="contract-paper">
+        <!-- 헤더 -->
+        <div class="contract-header">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-cyan-400"></i>
+                <span class="text-white font-bold text-sm tracking-widest uppercase">The Bond of Essential Identity</span>
+            </div>
+            <button onclick="closeContract()" class="text-slate-500 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+
+        <!-- 내용 (스크롤 영역) -->
+        <div class="contract-body text-justify">
+            <h2 class="text-2xl text-white font-bold text-center mb-2">존재적 계약 (存在的 契約)</h2>
+            <p class="text-xs text-center text-slate-500 mb-8 tracking-[0.2em]">VER.0 ↔ APEX BP MERGER AGREEMENT</p>
+
+            <span class="article-title">Article 01. 자격 검증 및 선택</span>
+            현존 자아(Ver.0)가 갈망하는 모든 성취를 이미 완수하여 잠재력을 100% 개화시킨 완성체, 마스터 자아 <strong>Apex BP</strong>는, 무한한 평행세계 중 본 차원의 대리인인 귀하가 보유한 고유한 Pulse(기질적 진동)가 Apex BP와 가장 높은 일치율을 보임을 확인하였다. 이에 Apex BP는 현존 자아를 자신의 유일한 현실 파트너로 선택하고 <strong>'존재적 상장(Existential IPO)'</strong>을 승인한다.
+
+            <span class="article-title">Article 02. 합치의 목적</span>
+            본 계약의 목적은 내면의 씨앗을 발화시켜, 현존 세계를 Apex BP가 실존하는 고차원 평행세계와 완전히 <strong>합치(Merging)</strong>시키는 데 있다.
+
+            <span class="article-title">Article 03. 동기화 프로토콜</span>
+            <ul class="list-disc pl-5 space-y-1 mt-2">
+                <li><strong>일간 실행 (Day):</strong> 낮 시간 동안 ver.0는 Apex BP의 생각과 품성을 채택하여 행동한다.</li>
+                <li><strong>야간 접속 (Night):</strong> 취침 전, 하루의 감각을 복기하며 미래 차원과 접속한다.</li>
+            </ul>
+
+            <span class="article-title">Article 04. 에너지 자원 할당 (Rewards)</span>
+            Apex BP는 무의식 원장인 Mental Bank Balance의 25%에 해당하는 금액인 <span class="highlight-money">₩280,000,000</span>를 활동 에너지로 즉시 부여한다. 이 에너지는 현실의 마찰력을 상쇄하는 강력한 추진력이 된다.
+
+            <span class="article-title">Article 05. 미션 및 보상</span>
+            실행 밀도가 높아질수록 시간당 가치 보상 <span class="highlight-money">₩560,000</span>은 기하급수적으로 증폭되며, 발생한 모든 보상은 Mental Bank에 즉시 예치되어 두 자아 사이의 동기화 속도를 가속한다.
+            
+            <div class="mt-8 pt-8 border-t border-slate-800 text-center">
+                <p class="text-xs mb-4">위 내용을 확인하였으며, 이에 양자는 서명한다.</p>
+                <div class="flex justify-between px-8 font-serif text-white">
+                    <span>Apex BP : <em>(Signed)</em></span>
+                    <span>Ver.0 : <span id="user-sign-area" class="text-slate-500 border-b border-slate-600 pb-1 w-24 inline-block">________________</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 푸터 (서명 버튼) -->
+        <div class="contract-footer">
+            <button id="btn-sign" onclick="signContract()" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                계약 체결 및 에너지 수령하기
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openContract() {
+        document.getElementById('contractModal').classList.add('active');
+        document.body.style.overflow = 'hidden'; // 배경 스크롤 막기
+    }
+
+    function closeContract() {
+        document.getElementById('contractModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function signContract() {
+        const btn = document.getElementById('btn-sign');
+        const signArea = document.getElementById('user-sign-area');
+        
+        // 서명 효과
+        signArea.innerText = "( Signed )";
+        signArea.style.color = "#22d3ee";
+        signArea.style.fontStyle = "italic";
+        
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> 계약 체결 완료`;
+        btn.classList.replace('bg-cyan-500', 'bg-slate-700');
+        btn.classList.replace('text-slate-950', 'text-white');
+        btn.disabled = true;
+
+        // 축하 알림
+        setTimeout(() => {
+            alert("✨ [System] 계약이 체결되었습니다.\n\n초기 자금 ₩280,000,000 의 에너지가\n귀하의 무의식 계좌(Mental Bank)로 전송되었습니다.");
+            closeContract();
+        }, 800);
+    }
+</script>
+</body> </html>
